@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScénarioLab — Larzac Studio</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d14; --card: #13131e; --card2: #1a1a28;
+  --border: #252535; --gold: #e8c547; --gold2: #b89a20;
+  --muted: #5a5a78; --text: #e0e0f0;
+  --blue: #4a9eff; --green: #52c48a; --purple: #c452e0; --red: #e05252;
+}
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+}
+
+/* HEADER */
+#hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 28px; border-bottom: 1px solid var(--border);
+  background: rgba(13,13,20,.97); position: sticky; top: 0; z-index: 50;
+}
+.logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.logo-sq { width: 32px; height: 32px; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.logo-name { font-size: 16px; font-weight: 800; letter-spacing: 2px; color: var(--gold); }
+.logo-sub { font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+.rec { display: flex; align-items: center; gap: 6px; }
+.rec-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: blink 1.4s ease infinite; }
+.rec-txt { font-size: 10px; color: var(--red); letter-spacing: 2px; font-family: monospace; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+
+/* SCREENS */
+#app { max-width: 820px; margin: 0 auto; padding: 48px 28px; }
+.scr { display: none; }
+.scr.on { display: block; animation: fadeup .3s ease; }
+@keyframes fadeup { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* HOME */
+.eyebrow { font-family: monospace; font-size: 10px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+.hero { font-size: clamp(40px, 7vw, 80px); font-weight: 900; line-height: .92; margin-bottom: 18px; }
+.hero em { color: var(--gold); font-style: normal; }
+.lead { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 480px; margin-bottom: 40px; }
+.type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.tcard {
+  background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--tc);
+  padding: 22px 18px; cursor: pointer; transition: background .2s;
+}
+.tcard:hover { background: var(--card2); }
+.tcard-icon { font-size: 24px; margin-bottom: 10px; }
+.tcard-name { font-size: 17px; font-weight: 800; color: var(--tc); margin-bottom: 5px; letter-spacing: .5px; }
+.tcard-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* QUESTIONS */
+.prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.prog-lbl { font-family: monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+.prog-num { font-size: 15px; font-weight: 800; color: var(--gold); }
+.prog-track { height: 2px; background: var(--border); margin-bottom: 40px; }
+.prog-fill { height: 100%; background: var(--gold); transition: width .4s; }
+.qbadge {
+  display: inline-block; font-family: monospace; font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--qc);
+  color: var(--qc); margin-bottom: 20px;
+}
+.qtxt { font-size: clamp(22px,4vw,38px); font-weight: 900; line-height: 1.1; margin-bottom: 7px; }
+.qhint { font-size: 13px; color: var(--muted); font-style: italic; margin-bottom: 22px; }
+.qinput {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-top: 2px solid var(--gold); color: var(--text);
+  font-family: inherit; font-size: 15px; padding: 15px 18px;
+  resize: vertical; min-height: 96px; outline: none; line-height: 1.6;
+  transition: border-color .2s;
+}
+.qinput:focus { border-color: var(--gold); }
+.qinput::placeholder { color: var(--muted); font-style: italic; }
+
+/* SUGGESTIONS */
+.sug { margin-top: 10px; border: 1px solid var(--border); background: var(--card); }
+.sug-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; user-select: none; }
+.sug-hdr-l { display: flex; align-items: center; gap: 8px; }
+.aitag { font-family: monospace; font-size: 9px; color: #c47a3a; border: 1px solid #c47a3a; padding: 1px 6px; letter-spacing: 2px; }
+.sug-lbl { font-size: 12px; color: var(--muted); }
+.sug-body { padding: 12px 14px; display: none; }
+.sug-body.on { display: block; }
+.sug-spin { font-family: monospace; font-size: 12px; color: var(--muted); font-style: italic; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: var(--card2); border: 1px solid var(--border);
+  padding: 6px 11px; font-size: 12px; color: var(--text); cursor: pointer; transition: all .15s;
+}
+.chip:hover { border-color: var(--gold); color: var(--gold); }
+
+/* BUTTONS */
+.nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; }
+.btn { border: none; cursor: pointer; font-family: inherit; transition: all .18s; outline: none; }
+.btn-ghost { background: none; border: 1px solid var(--border); color: var(--muted); padding: 11px 22px; font-size: 13px; }
+.btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+.btn-gold { background: var(--gold); color: #0d0d14; padding: 12px 30px; font-size: 15px; font-weight: 800; letter-spacing: 1px; }
+.btn-gold:hover { background: #f5d55a; }
+.btn-gold:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+.btn-outline { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 11px 22px; font-size: 14px; font-weight: 700; }
+.btn-outline:hover { background: rgba(232,197,71,.07); }
+.btn-dim { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 11px 22px; font-size: 14px; font-weight: 700; }
+.btn-dim:hover { border-color: var(--muted); color: var(--text); }
+.act-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+
+/* CONGRATS SCREEN */
+.congrats-wrap { text-align: center; padding: 20px 0 36px; }
+.congrats-emoji { font-size: 64px; margin-bottom: 16px; animation: pop .5s cubic-bezier(.17,.67,.35,1.4); }
+@keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+.congrats-title { font-size: clamp(32px,6vw,64px); font-weight: 900; line-height: .92; margin-bottom: 12px; }
+.congrats-title em { color: var(--gold); font-style: normal; }
+.congrats-sub { font-size: 15px; color: var(--muted); margin-bottom: 32px; }
+.congrats-card { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--gold); padding: 22px 28px; margin-bottom: 28px; text-align: left; }
+.congrats-film-type { font-family: monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.congrats-film-title { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+.congrats-film-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.congrats-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 18px; }
+.congrats-stat { background: var(--card2); border: 1px solid var(--border); padding: 12px; text-align: center; }
+.congrats-stat-val { font-size: 22px; font-weight: 900; color: var(--gold); }
+.congrats-stat-lbl { font-family: monospace; font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
+.congrats-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 28px; }
+.congrats-toggle { background: none; border: none; color: var(--muted); font-size: 12px; font-family: monospace; cursor: pointer; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; padding: 8px 0; }
+.congrats-toggle:hover { color: var(--text); }
+.congrats-scen { display: none; }
+.congrats-scen.on { display: block; }
+
+/* REGEN */
+.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.sec-lbl { font-family: monospace; font-size: 10px; letter-spacing: 3px; color: var(--gold); display: flex; align-items: center; gap: 8px; flex: 1; }
+.sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.btn-regen { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 10px; font-family: monospace; padding: 3px 9px; cursor: pointer; letter-spacing: 1px; transition: all .15s; flex-shrink: 0; }
+.btn-regen:hover { border-color: var(--gold); color: var(--gold); }
+.btn-regen:disabled { opacity: .4; cursor: not-allowed; }
+.sec-txt { font-family: monospace; font-size: 13px; line-height: 1.85; white-space: pre-wrap; min-height: 20px; transition: opacity .3s; }
+.sec-txt.loading { opacity: .35; }
+
+/* RESULT */
+.result-ey { font-family: monospace; font-size: 10px; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+.result-h { font-size: clamp(28px,5vw,52px); font-weight: 900; line-height: .93; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.scen-box { background: var(--card); border: 1px solid var(--border); border-top: 2px solid var(--gold); padding: 30px 34px; position: relative; margin-bottom: 24px; }
+.scen-tag { position: absolute; top: -1px; right: 28px; background: var(--gold); color: #0d0d14; font-family: monospace; font-size: 9px; letter-spacing: 2px; padding: 2px 8px; }
+.sec { margin-bottom: 20px; }
+.sec-lbl { font-family: monospace; font-size: 10px; letter-spacing: 3px; color: var(--gold); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.sec-lbl::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.sec-txt { font-family: monospace; font-size: 13px; line-height: 1.85; white-space: pre-wrap; }
+.scen-loading { font-family: monospace; font-size: 13px; color: var(--muted); font-style: italic; padding: 16px 0; display: flex; align-items: center; gap: 8px; }
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* RESUME BANNER */
+#resume-banner {
+  background: var(--card2); border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold); padding: 14px 18px; margin-bottom: 24px;
+  display: none; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+#resume-banner.on { display: flex; }
+.resume-info { font-size: 13px; color: var(--text); }
+.resume-info strong { color: var(--gold); }
+.resume-info span { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+.resume-btns { display: flex; gap: 8px; }
+.btn-resume { background: var(--gold); color: #0d0d14; border: none; padding: 8px 18px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.btn-resume-dismiss { background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 14px; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+/* TEAM SCREEN */
+.team-screen-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:28px; }
+.team-field { background:var(--card); border:1px solid var(--border); padding:14px 16px; display:flex; align-items:center; gap:12px; }
+.team-field-icon { font-size:20px; flex-shrink:0; width:32px; text-align:center; }
+.team-field-inner { flex:1; }
+.team-field-label { font-family:monospace; font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+.team-field-input { background:none; border:none; border-bottom:1px solid var(--border); width:100%; color:var(--text); font-family:inherit; font-size:14px; outline:none; padding:2px 0; transition:border-color .2s; }
+.team-field-input:focus { border-color:var(--gold); }
+.team-field-input::placeholder { color:var(--muted); font-style:italic; font-size:13px; }
+.team-skip { font-family:monospace; font-size:11px; color:var(--muted); cursor:pointer; text-decoration:underline; background:none; border:none; padding:0; }
+.team-skip:hover { color:var(--text); }
+
+/* GUIDE DES PLANS */
+#plans-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:200; overflow-y:auto; padding:24px 16px; }
+#plans-modal.on { display:block; }
+.plans-box { background:var(--card); border:1px solid var(--border); border-top:3px solid var(--gold); max-width:780px; margin:0 auto; padding:28px 24px; }
+.plans-box-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.plans-box-ttl { font-size:18px; font-weight:900; color:var(--gold); letter-spacing:1px; }
+.plans-close { background:none; border:1px solid var(--border); color:var(--muted); padding:7px 14px; cursor:pointer; font-size:13px; font-family:inherit; }
+.plans-close:hover { border-color:var(--muted); color:var(--text); }
+.plans-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.plan-card { background:var(--card2); border:1px solid var(--border); padding:12px 10px; cursor:pointer; transition:border-color .15s; }
+.plan-card:hover { border-color:var(--gold); }
+.plan-card svg { width:100%; height:auto; display:block; margin-bottom:8px; }
+.plan-card-name { font-size:11px; font-weight:800; color:var(--text); text-align:center; margin-bottom:3px; }
+.plan-card-desc { font-size:10px; color:var(--muted); text-align:center; line-height:1.4; }
+.plan-btn { display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); color:var(--muted); padding:7px 13px; cursor:pointer; font-size:12px; font-family:inherit; margin-top:10px; transition:all .15s; }
+.plan-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+/* ── PRINT WRAPPER ── */
+#print-wrap { display: none; }
+#print-wrap.on { display: block; }
+.ptoolbar {
+  background: var(--card2); border-bottom: 1px solid var(--border);
+  padding: 13px 22px; display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 50;
+}
+.ptoolbar-info { font-family: monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+.ptoolbar-btns { display: flex; gap: 8px; }
+.pages { background: #aaa; padding: 24px 16px; }
+
+/* ── PRINT PAGES ── */
+.ppage {
+  width: 210mm; min-height: 297mm;
+  padding: 15mm 17mm 22mm;
+  background: #fff; color: #111;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative; margin: 0 auto 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.22);
+}
+.ph { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #111; padding-bottom: 5px; margin-bottom: 10px; }
+.ph-logo { font-size: 13px; font-weight: 800; letter-spacing: 2px; }
+.ph-tag { font-family: monospace; font-size: 8px; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+.ph-num { font-family: monospace; font-size: 9px; color: #999; }
+.pfoot { position: absolute; bottom: 9mm; left: 17mm; right: 17mm; border-top: 1px solid #ddd; padding-top: 3px; display: flex; justify-content: space-between; }
+.pfoot span { font-family: monospace; font-size: 7px; color: #bbb; letter-spacing: 1px; }
+.ptitle { font-size: 22px; font-weight: 900; letter-spacing: 1px; margin-bottom: 5mm; }
+
+/* Cover */
+.cv-top { border-bottom: 1px solid #ddd; padding-bottom: 6mm; margin-bottom: 6mm; }
+.cv-ey { font-family: monospace; font-size: 8px; color: #888; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 3mm; }
+.cv-big { font-size: 46px; font-weight: 900; line-height: .9; margin-bottom: 3mm; }
+.cv-big em { color: #b8960a; font-style: normal; }
+.cv-badge { display: inline-block; font-family: monospace; font-size: 9px; letter-spacing: 2px; border: 1.5px solid #111; padding: 2px 7px; text-transform: uppercase; margin-bottom: 5mm; }
+.cv-lbl { font-family: monospace; font-size: 8px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1.5mm; }
+.cv-title-in { font-size: 22px; font-weight: 900; border: none; border-bottom: 2px solid #111; width: 100%; background: none; color: #111; outline: none; padding-bottom: 1.5mm; font-family: inherit; }
+.pg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.pfield label { font-family: monospace; font-size: 7.5px; color: #888; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 1.5mm; }
+.pfield input { border: none; border-bottom: 1px solid #bbb; width: 100%; font-size: 11px; font-family: inherit; color: #111; background: none; outline: none; padding: 1mm 0; }
+.pteam-ttl { font-size: 13px; font-weight: 900; letter-spacing: 1px; margin-bottom: 3mm; border-bottom: 1px solid #eee; padding-bottom: 1.5mm; margin-top: 6mm; }
+.team-g { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+.team-f label { font-family: monospace; font-size: 7.5px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 1mm; }
+.team-f input { border: none; border-bottom: 1px solid #ccc; width: 100%; font-size: 11px; font-family: inherit; background: none; color: #111; outline: none; }
+.cv-strip { display: flex; height: 4px; margin-top: 6mm; }
+.cv-strip span { flex: 1; }
+.cv-strip span:nth-child(odd) { background: #111; }
+.cv-strip span:nth-child(even) { background: #b8960a; }
+
+/* Scenario page */
+.sc-sec { margin-bottom: 4mm; }
+.sc-ttl { font-family: monospace; font-size: 10px; font-weight: 700; letter-spacing: 3px; border-bottom: 1px solid #ccc; padding-bottom: 1.5mm; margin-bottom: 2mm; }
+.sc-body { font-family: monospace; font-size: 10px; line-height: 1.75; color: #222; min-height: 10mm; }
+.sc-body.lg { min-height: 20mm; }
+
+/* Fiche tech */
+.ftgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-bottom: 4mm; }
+.ftf { border: 1px solid #ddd; padding: 2.5mm 3mm; }
+.ftf label { font-family: monospace; font-size: 7.5px; color: #888; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 1.5mm; }
+.ftf input, .ftf textarea { border: none; width: 100%; font-size: 11px; font-family: inherit; background: none; color: #111; outline: none; resize: none; line-height: 1.5; }
+.ftf.full { grid-column: 1/-1; }
+.ftf textarea { min-height: 11mm; }
+.psubtitle { font-size: 12px; font-weight: 900; letter-spacing: 1px; margin-bottom: 2mm; border-bottom: 1px solid #eee; padding-bottom: 1.5mm; }
+.lieu-row { display: flex; gap: 2.5mm; margin-bottom: 1.8mm; align-items: center; }
+.lieu-row span { font-family: monospace; font-size: 9px; color: #888; min-width: 13px; }
+.lieu-row input { border: none; border-bottom: 1px solid #ccc; flex: 1; font-size: 10.5px; font-family: inherit; background: none; outline: none; }
+/* Checklist */
+.cl-sub { font-family: monospace; font-size: 8.5px; color: #888; letter-spacing: 2px; margin-bottom: 5mm; }
+.cl-sec { margin-bottom: 4.5mm; }
+.cl-ttl { font-size: 12px; font-weight: 900; letter-spacing: 1px; background: #111; color: #fff; padding: 2mm 3.5mm; margin-bottom: 2mm; }
+.cl-items { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3mm; }
+.cl-item { display: flex; align-items: center; gap: 7px; font-size: 10.5px; padding: 1.3mm 0; border-bottom: 1px solid #f0f0f0; }
+.cl-item input[type=checkbox] { width: 12px; height: 12px; flex-shrink: 0; }
+.cl-notes { border: 1px solid #ddd; padding: 3mm; margin-top: 4mm; }
+.cl-notes label { font-family: monospace; font-size: 8px; color: #888; text-transform: uppercase; letter-spacing: 2px; display: block; margin-bottom: 3mm; }
+.cl-line { border-bottom: 1px solid #e0e0e0; min-height: 6mm; margin-bottom: 1mm; }
+
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff !important; }
+  #hdr, #app { display: none !important; }
+  #print-wrap { display: block !important; }
+  .ptoolbar { display: none !important; }
+  .pages { background: none !important; padding: 0 !important; }
+  .ppage { margin: 0; box-shadow: none !important; page-break-after: always; min-height: 0; }
+  .ppage:last-child { page-break-after: auto; }
+  @page { size: A4 portrait; margin: 0; }
+}
+
+@media (max-width: 600px) {
+  .type-grid { grid-template-columns: 1fr; }
+  #app { padding: 32px 18px; }
+  .pg2, .team-g, .ftgrid, .cl-items { grid-template-columns: 1fr !important; }
+  .ppage { width: 100%; min-height: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="logo" onclick="goHome()">
+    <div class="logo-sq">🎬</div>
+    <div>
+      <div class="logo-name">ScénarioLab</div>
+      <div class="logo-sub">Larzac Studio</div>
+    </div>
+  </div>
+  <div class="rec">
+    <div class="rec-dot"></div>
+    <span class="rec-txt">SESSION ACTIVE</span>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- HOME -->
+  <div class="scr on" id="s-home">
+    <div id="resume-banner">
+      <div class="resume-info">
+        <strong>⚡ Session en cours</strong>
+        <span id="resume-desc">Un scénario a été commencé.</span>
+      </div>
+      <div class="resume-btns">
+        <button class="btn-resume-dismiss" onclick="clearSave()">✕ Effacer</button>
+        <button class="btn-resume" onclick="resumeSession()">↩ Reprendre →</button>
+      </div>
+    </div>
+    <p class="eyebrow">// Larzac Studio — Outil de création</p>
+    <h1 class="hero">Construis<br>ton <em>scénario</em></h1>
+    <p class="lead">Réponds aux questions, l'IA t'aide à trouver des idées, et ton dossier complet est prêt à imprimer avant le tournage.</p>
+    <div class="type-grid">
+      <div class="tcard" style="--tc:var(--blue)" onclick="goTeam('fiction')">
+        <div class="tcard-icon">🎬</div>
+        <div class="tcard-name">Fiction</div>
+        <div class="tcard-desc">Raconte une histoire avec des personnages et une intrigue.</div>
+      </div>
+      <div class="tcard" style="--tc:var(--green)" onclick="goTeam('docu')">
+        <div class="tcard-icon">🎥</div>
+        <div class="tcard-name">Documentaire</div>
+        <div class="tcard-desc">Explore un sujet réel, un lieu, une personne.</div>
+      </div>
+      <div class="tcard" style="--tc:var(--purple)" onclick="goTeam('clip')">
+        <div class="tcard-icon">✨</div>
+        <div class="tcard-name">Clip / Expé</div>
+        <div class="tcard-desc">Un film visuel, expérimental, une ambiance.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAM -->
+  <div class="scr" id="s-team">
+    <p class="eyebrow">// Étape 1 — L'équipe</p>
+    <h2 class="hero" style="font-size:clamp(32px,5vw,58px);margin-bottom:10px">Votre <em>équipe</em></h2>
+    <p class="lead" style="margin-bottom:28px">Entrez les prénoms de chaque membre. Ils apparaîtront automatiquement dans le dossier imprimable.</p>
+    <div class="team-screen-grid">
+      <div class="team-field">
+        <div class="team-field-icon">🎬</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Réalisateur·trice</div>
+          <input class="team-field-input" id="tm-real" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">🎥</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Caméra</div>
+          <input class="team-field-input" id="tm-cam" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">🎙</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Son</div>
+          <input class="team-field-input" id="tm-son" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">💡</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Lumière</div>
+          <input class="team-field-input" id="tm-lum" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">🎭</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Acteur·trice principal·e</div>
+          <input class="team-field-input" id="tm-act1" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">🎭</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Acteur·trice 2</div>
+          <input class="team-field-input" id="tm-act2" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">✏️</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Script / continuité</div>
+          <input class="team-field-input" id="tm-script" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+      <div class="team-field">
+        <div class="team-field-icon">🖼</div>
+        <div class="team-field-inner">
+          <div class="team-field-label">Décors / Accessoires</div>
+          <input class="team-field-input" id="tm-deco" type="text" placeholder="Prénom…">
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="show('s-home');showApp()">← Retour</button>
+      <div style="display:flex;align-items:center;gap:16px">
+        <button class="team-skip" onclick="startJourney()">Passer cette étape →</button>
+        <button class="btn btn-gold" onclick="startJourney()">C'est parti ! →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="scr" id="s-q">
+    <div class="prog-row">
+      <span class="prog-lbl">Progression</span>
+      <span class="prog-num" id="prog-num">1 / 7</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:14%"></div></div>
+    <div class="qbadge" id="qbadge"></div>
+    <h2 class="qtxt" id="qtxt"></h2>
+    <p class="qhint" id="qhint"></p>
+    <textarea class="qinput" id="qinput" oninput="onInput()"></textarea>
+    <div class="sug">
+      <div class="sug-hdr" onclick="toggleSug()">
+        <div class="sug-hdr-l">
+          <span class="aitag">IA</span>
+          <span class="sug-lbl">Besoin d'inspiration ? Clique pour des idées</span>
+        </div>
+        <span id="sug-arr">▼</span>
+      </div>
+      <div class="sug-body" id="sug-body">
+        <div class="sug-spin" id="sug-spin">Génération des idées…</div>
+        <div class="chips" id="chips"></div>
+      </div>
+    </div>
+    <button class="plan-btn" onclick="openPlans()">🎥 Guide des types de plans</button>
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goBack()">← Retour</button>
+      <button class="btn btn-gold" id="btn-next" onclick="goNext()" disabled>SUIVANT →</button>
+    </div>
+  </div>
+
+  <!-- CONGRATS -->
+  <div class="scr" id="s-congrats">
+    <div class="congrats-wrap">
+      <div class="congrats-emoji">🎬</div>
+      <h2 class="congrats-title">Scénario<br><em>terminé !</em></h2>
+      <p class="congrats-sub">Votre scénario est prêt. Passez au dossier imprimable ou relisez-le ci-dessous.</p>
+    </div>
+    <div class="congrats-card">
+      <div class="congrats-film-type" id="cg-type">FICTION</div>
+      <div class="congrats-film-title" id="cg-title">—</div>
+      <div class="congrats-film-desc" id="cg-synopsis">—</div>
+      <div class="congrats-stats">
+        <div class="congrats-stat"><div class="congrats-stat-val" id="cg-q">7</div><div class="congrats-stat-lbl">Questions</div></div>
+        <div class="congrats-stat"><div class="congrats-stat-val" id="cg-sec">6</div><div class="congrats-stat-lbl">Sections</div></div>
+        <div class="congrats-stat"><div class="congrats-stat-val" id="cg-pages">3</div><div class="congrats-stat-lbl">Pages dossier</div></div>
+      </div>
+    </div>
+    <div class="congrats-actions">
+      <button class="btn btn-gold" style="font-size:15px;padding:13px 32px" onclick="openPrint()">📄 Préparer le dossier imprimable</button>
+      <button class="btn btn-dim" onclick="goHome()">↺ Nouveau scénario</button>
+    </div>
+    <button class="congrats-toggle" onclick="toggleScenView()">
+      <span id="cg-toggle-arr">▼</span> <span id="cg-toggle-lbl">Lire le scénario complet</span>
+    </button>
+    <div class="congrats-scen" id="cg-scen-wrap">
+      <div class="scen-box" id="scen-box" style="margin-top:12px">
+        <div class="scen-tag" id="scen-tag"></div>
+        <div id="scen-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT (kept for resume compatibility) -->
+  <div class="scr" id="s-result" style="display:none"></div>
+
+<!-- MODAL GUIDE DES PLANS -->
+<div id="plans-modal" onclick="if(event.target===this)closePlans()">
+  <div class="plans-box">
+    <div class="plans-box-hdr">
+      <span class="plans-box-ttl">🎥 Guide des types de plans</span>
+      <button class="plans-close" onclick="closePlans()">✕ Fermer</button>
+    </div>
+    <div class="plans-grid" id="plans-grid"></div>
+  </div>
+</div>
+
+<!-- PRINT DOC -->
+<div id="print-wrap">
+  <div class="ptoolbar">
+    <span class="ptoolbar-info">📄 Complète les champs, puis clique sur Imprimer</span>
+    <div class="ptoolbar-btns">
+      <button class="btn btn-ghost" onclick="closePrint()">← Retour</button>
+      <button class="btn btn-outline" onclick="window.print()">🖨 Imprimer / PDF</button>
+      <button class="btn btn-dim" onclick="goHome()">↺ Nouveau</button>
+    </div>
+  </div>
+  <div class="pages">
+
+    <!-- PAGE 1 : COUVERTURE -->
+    <div class="ppage">
+      <div class="ph">
+        <span class="ph-logo">ScénarioLab — Larzac Studio</span>
+        <span class="ph-tag">Dossier de préparation au tournage</span>
+        <span class="ph-num">01 / 06</span>
+      </div>
+      <div class="cv-top">
+        <p class="cv-ey">Dossier de préparation</p>
+        <div class="cv-big">Pré-<em>prod</em></div>
+        <div class="cv-badge" id="cv-badge">FICTION</div>
+        <p class="cv-lbl">Titre du film</p>
+        <input class="cv-title-in" id="cv-title" type="text" placeholder="MON FILM…">
+      </div>
+      <div class="pg2">
+        <div class="pfield"><label>Date de tournage</label><input type="text" placeholder="JJ / MM / AAAA"></div>
+        <div class="pfield"><label>Durée estimée</label><input type="text" placeholder="Ex : 3 minutes"></div>
+        <div class="pfield"><label>Lieu principal</label><input type="text" placeholder="Ex : Cour du collège…"></div>
+        <div class="pfield"><label>Classe / Club</label><input type="text" placeholder="Ex : 4ème B — Club ciné" value="Larzac Studio"></div>
+      </div>
+      <div class="pteam-ttl">L'équipe</div>
+      <div class="team-g">
+        <div class="team-f"><label>🎬 Réalisateur·trice</label><input id="pt-real" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>🎥 Caméra</label><input id="pt-cam" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>🎙 Son</label><input id="pt-son" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>💡 Lumière</label><input id="pt-lum" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>🎭 Acteur·trice principal·e</label><input id="pt-act1" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>🎭 Acteur·trice 2</label><input id="pt-act2" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>✏️ Script</label><input id="pt-script" type="text" placeholder="Prénom"></div>
+        <div class="team-f"><label>🖼 Décors / Accessoires</label><input id="pt-deco" type="text" placeholder="Prénom"></div>
+      </div>
+      <div class="cv-strip" id="cv-strip"></div>
+      <div class="pfoot"><span>ScénarioLab — Larzac Studio</span><span id="pdate1"></span></div>
+    </div>
+
+    <!-- PAGE 2 : SCÉNARIO -->
+    <div class="ppage">
+      <div class="ph">
+        <span class="ph-logo">ScénarioLab — Larzac Studio</span>
+        <span class="ph-tag" id="ph-tag">FICTION</span>
+        <span class="ph-num">02 / 02</span>
+      </div>
+      <div class="ptitle">Le Scénario</div>
+      <div id="print-scen"><div style="font-family:monospace;font-size:11px;color:#aaa;font-style:italic;">En attente…</div></div>
+      <div class="pfoot"><span>ScénarioLab — Larzac Studio</span><span id="pdate2"></span></div>
+    </div>
+
+  </div><!-- /.pages -->
+</div><!-- /#print-wrap -->
+
+<script>
+var J = {
+  fiction: { label:"Fiction", badge:"🎬 FICTION", color:"var(--blue)",
+    qs:[
+      {q:"C'est quoi l'idée de ton film ?", h:"En une ou deux phrases, résume de quoi ça parle.", p:"Ex : Un enfant découvre un passage secret dans sa cave…"},
+      {q:"Où se passe l'histoire ?", h:"Décris le lieu principal — réel ou imaginaire.", p:"Ex : Dans un collège abandonné, à la campagne…"},
+      {q:"Qui est le personnage principal ?", h:"Son prénom, son âge, ce qui le caractérise.", p:"Ex : Léa, 12 ans, curieuse et un peu solitaire…"},
+      {q:"Quel est son problème ou son désir ?", h:"Ce qu'il veut atteindre ou résoudre.", p:"Ex : Elle veut retrouver son chien disparu…"},
+      {q:"Qu'est-ce qui se passe au milieu ?", h:"Un événement fort, un retournement, une rencontre.", p:"Ex : Elle tombe sur un mystérieux personnage…"},
+      {q:"Comment ça se termine ?", h:"Bien, mal, ouvert ?", p:"Ex : Elle retrouve son chien mais réalise qu'elle avait disparu…"},
+      {q:"Quelle ambiance ou émotion tu veux provoquer ?", h:"Ce que le spectateur doit ressentir.", p:"Ex : Mystère et espoir, humour et tendresse…"}
+    ]},
+  docu: { label:"Documentaire", badge:"🎥 DOCUMENTAIRE", color:"var(--green)",
+    qs:[
+      {q:"Quel sujet veux-tu filmer ?", h:"Un lieu, une personne, un métier, un phénomène…", p:"Ex : Le marché du quartier, le club de foot de l'école…"},
+      {q:"Pourquoi ce sujet t'intéresse ?", h:"Ce qui te motive à faire ce film.", p:"Ex : Parce que personne n'en parle…"},
+      {q:"Qui vas-tu interviewer ou suivre ?", h:"Les personnes qui apparaîtront dans ton film.", p:"Ex : Le boucher du marché, des élèves du club…"},
+      {q:"Quelles images veux-tu montrer ?", h:"Les scènes, lieux, objets à filmer.", p:"Ex : Les étals de fruits, les entraînements…"},
+      {q:"Quelle question pose ton documentaire ?", h:"La grande question à laquelle le film répond.", p:"Ex : Comment ce marché survit face aux grandes surfaces ?"},
+      {q:"Quelle conclusion ou message veux-tu transmettre ?", h:"Ce que le spectateur garde en tête.", p:"Ex : Que ces gens méritent d'être connus…"},
+      {q:"Quelle atmosphère aura ton film ?", h:"La tonalité : grave, joyeuse, poétique…", p:"Ex : Chaleureux et intime, journalistique et précis…"}
+    ]},
+  clip: { label:"Clip / Expérimental", badge:"✨ CLIP / EXPÉ", color:"var(--purple)",
+    qs:[
+      {q:"Quelle est l'idée centrale ?", h:"Une image, une sensation, un concept à explorer.", p:"Ex : Le temps qui passe, la solitude dans une foule…"},
+      {q:"Quelle musique ou quel son imagines-tu ?", h:"Le son guide souvent le clip.", p:"Ex : Une musique électro mélancolique, des sons de nature…"},
+      {q:"Quelles images ou couleurs tu veux montrer ?", h:"Palette, textures, types de plans.", p:"Ex : Des gros plans de matières, des silhouettes à contre-jour…"},
+      {q:"Il y a un personnage ou c'est purement visuel ?", h:"Humain, objet, abstraction… ou un mix.", p:"Ex : Une silhouette anonyme, des mains, aucun personnage…"},
+      {q:"Quel mouvement ou rythme tu veux ?", h:"Lent et contemplatif ? Rapide et nerveux ?", p:"Ex : Des plans très lents, des coupes rapides…"},
+      {q:"Y a-t-il un message ou c'est purement esthétique ?", h:"Optionnel : une intention, une émotion.", p:"Ex : Montrer la beauté des choses ordinaires…"},
+      {q:"Comment ça commence et comment ça finit ?", h:"La première et la dernière image.", p:"Ex : Ça commence par du noir, ça finit sur un visage souriant…"}
+    ]}
+};
+
+var PLANS = ["Plan large","Plan d'ensemble","Plan moyen","Plan américain","Gros plan","Très gros plan","Plongée","Contre-plongée","Plan séquence"];
+
+var type=null, step=0, ans=[], sugOpen=false, sugLoaded=false, scenSections=[];
+var pendingType=null;
+
+// TEAM IDS → print field IDs mapping
+var TEAM_MAP = [
+  {src:'tm-real',  dst:'pt-real'},
+  {src:'tm-cam',   dst:'pt-cam'},
+  {src:'tm-son',   dst:'pt-son'},
+  {src:'tm-lum',   dst:'pt-lum'},
+  {src:'tm-act1',  dst:'pt-act1'},
+  {src:'tm-act2',  dst:'pt-act2'},
+  {src:'tm-script',dst:'pt-script'},
+  {src:'tm-deco',  dst:'pt-deco'}
+];
+
+// INIT
+window.onload = function() {
+  var s = document.getElementById('cv-strip');
+  for(var i=0;i<30;i++) { var sp=document.createElement('span'); s.appendChild(sp); }
+  var d = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  ['pdate1','pdate2'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.textContent=d;
+  });
+  checkResume();
+};
+
+var SAVE_KEY = 'scenariolab_v1';
+
+function saveSession() {
+  try {
+    var team = {};
+    ['tm-real','tm-cam','tm-son','tm-lum','tm-act1','tm-act2','tm-script','tm-deco'].forEach(function(id){
+      var el = document.getElementById(id); if(el) team[id] = el.value;
+    });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      type: type, step: step, ans: ans, scenSections: scenSections,
+      team: team, savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function loadSession() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch(e) { return null; }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  document.getElementById('resume-banner').classList.remove('on');
+}
+
+function checkResume() {
+  var s = loadSession();
+  if(!s || !s.type) return;
+  var age = Math.round((Date.now() - s.savedAt) / 60000);
+  var ageStr = age < 60 ? 'il y a '+age+' min' : 'il y a '+Math.round(age/60)+'h';
+  var desc = 'Film '+J[s.type].label+' — question '+(s.step+1)+'/'+J[s.type].qs.length+' — '+ageStr;
+  if(s.scenSections && s.scenSections.length) desc = 'Film '+J[s.type].label+' — scénario généré — '+ageStr;
+  document.getElementById('resume-desc').textContent = desc;
+  document.getElementById('resume-banner').classList.add('on');
+}
+
+function resumeSession() {
+  var s = loadSession();
+  if(!s || !s.type) return;
+  type = s.type; step = s.step; ans = s.ans; scenSections = s.scenSections||[];
+  pendingType = s.type;
+  // restore team
+  if(s.team) {
+    Object.keys(s.team).forEach(function(id){
+      var el = document.getElementById(id); if(el) el.value = s.team[id];
+    });
+  }
+  showApp();
+  if(scenSections.length) { populateCongrats(); show('s-congrats'); }
+  else { renderQ(); show('s-q'); }
+  window.scrollTo(0,0);
+}
+
+function show(id) {
+  document.querySelectorAll('.scr').forEach(function(el){ el.classList.remove('on'); });
+  var el = document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+
+function showApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('print-wrap').classList.remove('on');
+}
+
+function goHome() {
+  type=null; pendingType=null; step=0; ans=[]; scenSections=[];
+  showApp(); show('s-home'); checkResume();
+}
+
+function goTeam(t) {
+  pendingType = t;
+  showApp(); show('s-team');
+  window.scrollTo(0,0);
+}
+
+function startJourney() {
+  type = pendingType;
+  step=0;
+  ans = new Array(J[type].qs.length).fill('');
+  sugOpen=false; sugLoaded=false;
+  renderQ();
+  showApp(); show('s-q');
+  window.scrollTo(0,0);
+}
+
+function renderQ() {
+  var j=J[type], q=j.qs[step], total=j.qs.length;
+  document.getElementById('prog-num').textContent = (step+1)+' / '+total;
+  document.getElementById('prog-fill').style.width = Math.round(((step+1)/total)*100)+'%';
+  var badge = document.getElementById('qbadge');
+  badge.textContent = j.badge;
+  badge.style.setProperty('--qc', j.color);
+  document.getElementById('qtxt').textContent = q.q;
+  document.getElementById('qhint').textContent = q.h;
+  document.getElementById('qinput').placeholder = q.p;
+  document.getElementById('qinput').value = ans[step]||'';
+  document.getElementById('btn-next').textContent = step===total-1 ? 'GÉNÉRER LE DOSSIER ✦' : 'SUIVANT →';
+  // reset suggestions
+  sugOpen=false; sugLoaded=false;
+  document.getElementById('sug-body').classList.remove('on');
+  document.getElementById('sug-arr').textContent='▼';
+  document.getElementById('chips').innerHTML='';
+  document.getElementById('sug-spin').style.display='block';
+  checkBtn();
+}
+
+function onInput() {
+  ans[step] = document.getElementById('qinput').value;
+  checkBtn();
+  saveSession();
+}
+
+function checkBtn() {
+  document.getElementById('btn-next').disabled = (document.getElementById('qinput').value.trim().length < 2);
+}
+
+function goNext() {
+  ans[step] = document.getElementById('qinput').value;
+  saveSession();
+  if(step < J[type].qs.length-1) { step++; renderQ(); window.scrollTo(0,0); }
+  else genScen();
+}
+
+function goBack() {
+  ans[step] = document.getElementById('qinput').value;
+  if(step>0) { step--; renderQ(); }
+  else { showApp(); show('s-home'); }
+}
+
+// ── SUGGESTIONS STATIQUES ─────────────────────────────────────────────────────
+// 3 types × 7 questions × 10 idées chacune
+var SUG = {
+  fiction: [
+    // Q1 : idée du film
+    ["Un enfant découvre un passage secret dans sa cave",
+     "Deux amis se retrouvent seuls dans l'école la nuit",
+     "Une lettre mystérieuse change la vie d'une famille",
+     "Un robot s'échappe d'un labo et se réfugie au collège",
+     "Une fille réalise que son reflet dans le miroir ne l'imite plus",
+     "Un garçon reçoit des messages d'une personne qui n'existe plus",
+     "Une équipe de jeunes enquête sur une disparition dans leur village",
+     "Pendant un black-out, des voisins qui ne se parlent plus vont devoir s'aider",
+     "Un élève trouve un carnet avec des prédictions qui se réalisent",
+     "Une course contre la montre pour retrouver quelque chose de précieux avant la nuit"],
+    // Q2 : lieu
+    ["Un collège abandonné à la campagne",
+     "Une forêt au bord du village au crépuscule",
+     "Un appartement dans une vieille bâtisse",
+     "Une ferme isolée pendant une tempête",
+     "Un grenier plein de vieilles affaires oubliées",
+     "Une petite gare de campagne désaffectée",
+     "Une cave voûtée transformée en salle de répétition",
+     "Un lac gelé au bord d'un village en hiver",
+     "Le toit d'un immeuble avec vue sur toute la ville",
+     "Un marché couvert désert après la fermeture"],
+    // Q3 : personnage principal
+    ["Léa, 12 ans, curieuse et un peu solitaire",
+     "Tom, 13 ans, timide mais très courageux",
+     "Maya, 11 ans, passionnée de sciences",
+     "Noé, 14 ans, qui ne croit en rien de magique",
+     "Inès, 13 ans, qui observe tout mais parle peu",
+     "Jules, 12 ans, toujours dans la lune, plein d'imagination",
+     "Sara, 14 ans, nouvelle dans la ville, qui cherche sa place",
+     "Théo, 11 ans, qui veut prouver qu'il est capable de quelque chose de grand",
+     "Lena, 13 ans, qui garde un gros secret depuis des mois",
+     "Kilian, 12 ans, qui n'a qu'une seule amie — et vient de la perdre"],
+    // Q4 : problème ou désir
+    ["Elle veut retrouver son chien disparu",
+     "Il doit prouver son innocence avant la fin du jour",
+     "Elle cherche à comprendre la disparition de son père",
+     "Il veut gagner la confiance de ses nouveaux amis",
+     "Elle veut empêcher la démolition du lieu où elle a grandi",
+     "Il doit rendre service à quelqu'un sans que personne le sache",
+     "Elle veut réconcilier deux personnes qui se sont perdues de vue",
+     "Il cherche à retrouver un objet qui a une valeur sentimentale immense",
+     "Elle doit prendre une grande décision avant demain matin",
+     "Il veut juste qu'on le croie, une seule fois"],
+    // Q5 : événement au milieu
+    ["Il tombe sur un vieux journal qui révèle tout",
+     "Une mystérieuse silhouette l'aide puis disparaît",
+     "Un accident les oblige à coopérer",
+     "Elle découvre que quelqu'un lui ment depuis le début",
+     "Une tempête isole le groupe et change les règles du jeu",
+     "Un inconnu lui tend quelque chose et repart sans un mot",
+     "Le plan parfait s'effondre et il faut tout recommencer",
+     "Elle rencontre quelqu'un qui lui ressemble trop pour que ce soit un hasard",
+     "Une révélation inattendue remet tout en question",
+     "Le héros doit choisir entre deux loyautés impossibles à concilier"],
+    // Q6 : fin
+    ["Elle retrouve ce qu'elle cherchait, transformée",
+     "Tout s'arrange mais rien n'est vraiment comme avant",
+     "Fin ouverte : on ne sait pas si c'était réel",
+     "Il réussit mais perd quelque chose d'important",
+     "Les deux personnages se séparent mais chacun a changé",
+     "La vérité est révélée mais elle est plus compliquée qu'attendu",
+     "Elle échoue, mais cet échec lui apprend quelque chose d'essentiel",
+     "Tout le monde se réconcilie dans une scène finale silencieuse",
+     "Le dernier plan montre que le problème recommence ailleurs",
+     "Un geste simple suffit à tout résoudre — et c'était évident depuis le début"],
+    // Q7 : ambiance
+    ["Mystère et espoir mêlés",
+     "Humour et tendresse",
+     "Tension et soulagement final",
+     "Mélancolie douce, comme un souvenir",
+     "Aventure et adrénaline, rythme rapide",
+     "Poésie tranquille, presque contemplatif",
+     "Frisson sans être horrifiant — suspense maîtrisé",
+     "Émotion brute, sans effets inutiles",
+     "Légèreté et chaleur humaine",
+     "Ambiance nocturne et légèrement inquiétante"]
+  ],
+  docu: [
+    // Q1 : sujet
+    ["Le marché du village et ses commerçants",
+     "Le club de sport de l'école",
+     "Un artisan local et son métier oublié",
+     "Les coulisses de la cantine du collège",
+     "Un agriculteur qui travaille différemment des autres",
+     "Une chorale ou un groupe de musique amateur du coin",
+     "Les jardins partagés du quartier",
+     "Un bénévole qui s'occupe d'une association locale",
+     "Les préparatifs d'une fête traditionnelle du village",
+     "Un lieu qui va disparaître ou qui a failli disparaître"],
+    // Q2 : pourquoi ce sujet
+    ["Parce que personne n'en parle et que ça mérite d'être connu",
+     "Parce que c'est une passion que je veux faire découvrir",
+     "Parce que ça va disparaître et je veux en garder une trace",
+     "Parce que ça me touche personnellement",
+     "Parce que j'ai grandi près de ça et je ne me suis jamais vraiment posé la question",
+     "Parce que ça dit quelque chose d'important sur notre époque",
+     "Parce que je veux comprendre pourquoi ces gens font ça",
+     "Parce que c'est injuste et je veux le montrer",
+     "Parce que c'est beau et que personne ne le voit",
+     "Parce que j'ai une question et ce film m'aidera à trouver la réponse"],
+    // Q3 : personnes à interviewer
+    ["Le responsable du club et deux membres actifs",
+     "Un commerçant historique et ses clients réguliers",
+     "Un artisan et ses apprentis",
+     "Les cuisiniers de la cantine et des élèves",
+     "Le fondateur d'une association et des bénéficiaires",
+     "Un ancien et un jeune qui font le même métier",
+     "Des habitants du quartier de tous âges",
+     "Un expert et quelqu'un qui vit le sujet de l'intérieur",
+     "Des enfants et leurs parents sur le même sujet",
+     "Une seule personne, filmée longuement et en profondeur"],
+    // Q4 : images à montrer
+    ["Les gestes du métier en gros plan",
+     "Les moments de complicité entre les membres",
+     "Les lieux avant et pendant l'activité",
+     "Les outils, matières, et le travail en détail",
+     "Les visages pendant les moments de concentration",
+     "Les coulisses : les préparatifs, avant que ça commence",
+     "Les transitions entre différents moments de la journée",
+     "Les petits détails que personne ne remarque d'habitude",
+     "Les regards et les échanges non-verbaux",
+     "L'environnement : la rue, les bâtiments, la lumière du lieu"],
+    // Q5 : question posée
+    ["Comment ces gens gardent-ils leur passion intacte ?",
+     "Qu'est-ce qui fait tenir une communauté locale ?",
+     "À quoi ressemble une journée dans leur vie ?",
+     "Quel avenir pour ce lieu ou cette activité ?",
+     "Pourquoi font-ils ça et pas autre chose ?",
+     "Qu'est-ce qu'on perdrait si ça disparaissait ?",
+     "Qu'est-ce que ce métier ou cette passion dit de nous ?",
+     "Comment on apprend quelque chose qui ne s'enseigne pas à l'école ?",
+     "Qu'est-ce qui change quand on regarde ça de près ?",
+     "Est-ce que le bonheur peut ressembler à ça ?"],
+    // Q6 : conclusion
+    ["Que ces gens méritent d'être connus et respectés",
+     "Que la passion peut changer une vie",
+     "Que les petites choses du quotidien ont de la valeur",
+     "Qu'il faut préserver ce qui fait l'identité d'un lieu",
+     "Que derrière chaque métier il y a une histoire humaine",
+     "Que ralentir et observer change la façon dont on voit le monde",
+     "Que la transmission entre générations est fragile et précieuse",
+     "Que tout le monde a quelque chose d'intéressant à raconter",
+     "Que les apparences cachent toujours quelque chose de plus riche",
+     "Que filmer quelque chose, c'est déjà le sauver un peu"],
+    // Q7 : atmosphère
+    ["Chaleureux et intime, comme une rencontre",
+     "Journalistique et précis, comme un reportage",
+     "Poétique et contemplatif",
+     "Énergique et enthousiaste",
+     "Doux et nostalgique",
+     "Direct et sans fioritures",
+     "Curieux et espiègle, avec de l'humour",
+     "Grave et respectueux, comme un hommage",
+     "Vivant et spontané, comme si la caméra était invisible",
+     "Lyrique, presque comme un documentaire de cinéma"]
+  ],
+  clip: [
+    // Q1 : idée centrale
+    ["Le temps qui passe imperceptiblement",
+     "La solitude dans une foule",
+     "La liberté retrouvée après une période difficile",
+     "Le contraste entre nature et monde moderne",
+     "La répétition des gestes du quotidien",
+     "Le moment juste avant que quelque chose arrive",
+     "La distance entre deux personnes qui s'aiment",
+     "La beauté cachée dans les choses abîmées",
+     "L'attente — et ce qu'on fait pendant",
+     "La frontière entre réel et imaginaire"],
+    // Q2 : musique ou son
+    ["Une musique électro mélancolique",
+     "Des sons de nature amplifiés et rythmés",
+     "Une chanson douce avec voix a cappella",
+     "Silence ponctué de sons concrets du quotidien",
+     "Une boucle répétitive qui se transforme peu à peu",
+     "Musique de film orchestrale, tendue ou apaisante",
+     "Sons enregistrés sur place : rue, vent, foule lointaine",
+     "Une mélodie au piano, simple et lente",
+     "Un mélange de voix et de musique instrumentale",
+     "Aucune musique — que les sons naturels de la scène"],
+    // Q3 : images et couleurs
+    ["Des gros plans de textures et matières",
+     "Des silhouettes à contre-jour au coucher du soleil",
+     "Palette désaturée avec un seul élément coloré",
+     "Effets de lumière naturelle, flare et reflets",
+     "Noir et blanc, contrastes forts",
+     "Couleurs chaudes, lumière de fin de journée",
+     "Images floues et nettes alternées",
+     "Eau, reflets, transparences",
+     "Plans aériens ou très proches du sol",
+     "Objets du quotidien filmés comme des sculptures"],
+    // Q4 : personnage ou abstrait
+    ["Une silhouette anonyme dont on ne voit jamais le visage",
+     "Seulement des mains et des objets",
+     "Aucun personnage, que des lieux et objets",
+     "Plusieurs personnes qui ne se croisent jamais",
+     "Un personnage filmé toujours de dos",
+     "Des fragments de corps : pieds, bras, nuque",
+     "Un seul visage, filmé longuement, sans rien dire",
+     "Des groupes en mouvement, comme une chorégraphie",
+     "Une présence suggérée mais jamais montrée",
+     "Des enfants filmés dans leur univers naturel"],
+    // Q5 : rythme
+    ["Plans très lents, contemplatifs, presque fixes",
+     "Coupes rapides au rythme de la musique",
+     "Mélange : lent au début, accéléré à la fin",
+     "Caméra portée à l'épaule, mouvement organique",
+     "Plans longs qui glissent doucement (travelling)",
+     "Montage en split-screen : deux histoires en parallèle",
+     "Accéléré (timelapse) pour montrer le temps qui passe",
+     "Ralenti sur des moments brefs et intenses",
+     "Rythme irrégulier, imprévisible, comme une respiration",
+     "Un seul plan-séquence sans coupe du début à la fin"],
+    // Q6 : message ou esthétique
+    ["Montrer la beauté cachée des choses ordinaires",
+     "Aucun message, juste une sensation à vivre",
+     "Inviter à ralentir et regarder autrement",
+     "Célébrer quelque chose de simple et universel",
+     "Dire quelque chose sans paroles — que l'image suffise",
+     "Provoquer une émotion sans en expliquer l'origine",
+     "Questionner sans répondre — laisser le spectateur choisir",
+     "Rendre hommage à un lieu, un moment, une personne",
+     "Montrer ce qui est en train de disparaître",
+     "Juste jouer avec la lumière et la forme — sans autre but"],
+    // Q7 : début et fin
+    ["Noir complet, puis lumière progressivement",
+     "Commence sur un détail, finit sur un grand paysage",
+     "Même plan au début et à la fin, mais différent",
+     "Commence en couleur, finit en noir et blanc",
+     "Un son seul d'abord, puis l'image apparaît",
+     "Ouverture floue qui se met progressivement au point",
+     "Premier plan et dernier plan en miroir — symétrie parfaite",
+     "Début en mouvement, fin sur un plan fixe long",
+     "Commence en plein jour, finit à la tombée de la nuit",
+     "Le dernier plan est le plus simple de tout le film"]
+  ]
+};
+
+function toggleSug() {
+  sugOpen = !sugOpen;
+  document.getElementById('sug-body').classList.toggle('on', sugOpen);
+  document.getElementById('sug-arr').textContent = sugOpen ? '▲' : '▼';
+  if(sugOpen && !sugLoaded) loadSug();
+}
+
+function loadSug() {
+  sugLoaded = true;
+  document.getElementById('sug-spin').style.display = 'none';
+  document.getElementById('chips').innerHTML = '';
+  var pool = SUG[type] || SUG.fiction;
+  var ideas = pool[step] || ["Laisse libre cours à ton imagination !",
+    "Inspire-toi d'un film que tu as vu",
+    "Pense à quelque chose qui t'a marqué",
+    "Commence par ce qui te semble le plus simple"];
+  ideas.forEach(function(idea) {
+    var c = document.createElement('div');
+    c.className = 'chip';
+    c.textContent = idea;
+    c.onclick = function() {
+      var ta = document.getElementById('qinput');
+      ta.value = ta.value ? ta.value + ' ' + idea : idea;
+      ans[step] = ta.value;
+      checkBtn();
+    };
+    document.getElementById('chips').appendChild(c);
+  });
+}
+
+// ── GUIDE DES PLANS ──
+var PLANS_DATA = [
+  {
+    name: 'Plan large',
+    desc: 'Montre le décor entier. Le personnage est petit.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="38" width="104" height="18" fill="#2a3a2a"/>'
+       +'<rect x="8" y="8" width="104" height="30" fill="#1a2a3a"/>'
+       +'<rect x="20" y="15" width="15" height="20" rx="1" fill="#3a5a3a" opacity=".6"/>'
+       +'<rect x="85" y="18" width="12" height="17" rx="1" fill="#3a5a3a" opacity=".6"/>'
+       +'<ellipse cx="60" cy="36" rx="3" ry="7" fill="#e8c547" opacity=".5"/>'
+       +'<text x="60" y="62" text-anchor="middle" fill="#555" font-size="5" font-family="monospace">PLAN LARGE</text></svg>'
+  },
+  {
+    name: "Plan d'ensemble",
+    desc: 'Personnage visible de la tête aux pieds dans son environnement.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="40" width="104" height="16" fill="#2a3a2a"/>'
+       +'<rect x="8" y="8" width="104" height="32" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="30" rx="4" ry="4" fill="#e8c547" opacity=".7"/>'
+       +'<rect x="57" y="34" width="6" height="12" rx="1" fill="#e8c547" opacity=".5"/>'
+       +'<rect x="55" y="46" width="4" height="8" rx="1" fill="#e8c547" opacity=".4"/>'
+       +'<rect x="61" y="46" width="4" height="8" rx="1" fill="#e8c547" opacity=".4"/>'
+       +'<text x="60" y="62" text-anchor="middle" fill="#555" font-size="5" font-family="monospace">PLAN ENSEMBLE</text></svg>'
+  },
+  {
+    name: 'Plan moyen',
+    desc: 'Personnage cadré à la taille. On voit le visage et les gestes.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="8" width="104" height="50" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="22" rx="8" ry="8" fill="#e8c547" opacity=".7"/>'
+       +'<rect x="50" y="30" width="20" height="24" rx="2" fill="#e8c547" opacity=".4"/>'
+       +'<rect x="37" y="32" width="13" height="6" rx="2" fill="#e8c547" opacity=".25"/>'
+       +'<rect x="70" y="32" width="13" height="6" rx="2" fill="#e8c547" opacity=".25"/>'
+       +'<line x1="2" x2="118" y1="54" y2="54" stroke="#e05252" stroke-width=".8" stroke-dasharray="3,2" opacity=".5"/>'
+       +'<text x="60" y="62" text-anchor="middle" fill="#555" font-size="5" font-family="monospace">PLAN MOYEN</text></svg>'
+  },
+  {
+    name: 'Plan américain',
+    desc: 'Cadré mi-cuisse. Inspiré des westerns pour montrer le holster.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="8" width="104" height="50" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="18" rx="8" ry="8" fill="#e8c547" opacity=".7"/>'
+       +'<rect x="50" y="26" width="20" height="20" rx="2" fill="#e8c547" opacity=".4"/>'
+       +'<rect x="37" y="28" width="13" height="5" rx="2" fill="#e8c547" opacity=".25"/>'
+       +'<rect x="70" y="28" width="13" height="5" rx="2" fill="#e8c547" opacity=".25"/>'
+       +'<rect x="52" y="46" width="7" height="10" rx="1" fill="#e8c547" opacity=".3"/>'
+       +'<rect x="61" y="46" width="7" height="10" rx="1" fill="#e8c547" opacity=".3"/>'
+       +'<line x1="2" x2="118" y1="56" y2="56" stroke="#e05252" stroke-width=".8" stroke-dasharray="3,2" opacity=".5"/>'
+       +'<text x="60" y="64" text-anchor="middle" fill="#555" font-size="5" font-family="monospace">PLAN AMÉRICAIN</text></svg>'
+  },
+  {
+    name: 'Gros plan',
+    desc: 'Visage ou objet en entier. Exprime les émotions.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="8" width="104" height="52" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="34" rx="22" ry="24" fill="#e8c547" opacity=".6"/>'
+       +'<ellipse cx="52" cy="29" rx="4" ry="4" fill="#1a1a28" opacity=".7"/>'
+       +'<ellipse cx="68" cy="29" rx="4" ry="4" fill="#1a1a28" opacity=".7"/>'
+       +'<path d="M50 42 Q60 48 70 42" stroke="#1a1a28" stroke-width="1.5" fill="none" opacity=".7"/>'
+       +'<text x="60" y="66" text-anchor="middle" fill="#555" font-size="5" font-family="monospace">GROS PLAN</text></svg>'
+  },
+  {
+    name: 'Très gros plan',
+    desc: 'Un détail : œil, main, bouche. Très fort, très expressif.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="8" width="104" height="52" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="34" rx="35" ry="20" fill="#c8a060" opacity=".5"/>'
+       +'<ellipse cx="60" cy="34" rx="18" ry="18" fill="#3a2a1a" opacity=".8"/>'
+       +'<ellipse cx="60" cy="34" rx="10" ry="10" fill="#1a0a00" opacity=".9"/>'
+       +'<ellipse cx="65" cy="30" rx="3" ry="3" fill="#fff" opacity=".4"/>'
+       +'<text x="60" y="66" text-anchor="middle" fill="#555" font-size="4.5" font-family="monospace">TRÈS GROS PLAN</text></svg>'
+  },
+  {
+    name: 'Plongée',
+    desc: 'Caméra au-dessus. Personnage semble petit, vulnérable.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="8" width="104" height="52" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="52" rx="12" ry="4" fill="#2a3a2a" opacity=".8"/>'
+       +'<ellipse cx="60" cy="45" rx="6" ry="6" fill="#e8c547" opacity=".6"/>'
+       +'<rect x="57" y="51" width="6" height="5" rx="1" fill="#e8c547" opacity=".4"/>'
+       +'<line x1="55" y1="6" x2="60" y2="18" stroke="#4a9eff" stroke-width="1.5" opacity=".6"/>'
+       +'<polygon points="60,18 56,12 64,12" fill="#4a9eff" opacity=".6"/>'
+       +'<text x="60" y="66" text-anchor="middle" fill="#555" font-size="5" font-family="monospace">PLONGÉE</text></svg>'
+  },
+  {
+    name: 'Contre-plongée',
+    desc: 'Caméra en bas. Personnage semble grand, puissant.',
+    svg: '<svg viewBox="0 0 120 68" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="68" fill="#1a1a28"/><rect x="2" y="2" width="116" height="64" fill="#111" stroke="#333" stroke-width="1"/>'
+       +'<rect x="8" y="8" width="104" height="52" fill="#1a2a3a"/>'
+       +'<ellipse cx="60" cy="16" rx="8" ry="8" fill="#e8c547" opacity=".7"/>'
+       +'<rect x="55" y="24" width="10" height="16" rx="1" fill="#e8c547" opacity=".5"/>'
+       +'<rect x="50" y="26" width="5" height="8" rx="1" fill="#e8c547" opacity=".3"/>'
+       +'<rect x="65" y="26" width="5" height="8" rx="1" fill="#e8c547" opacity=".3"/>'
+       +'<line x1="65" y1="62" x2="60" y2="50" stroke="#4a9eff" stroke-width="1.5" opacity=".6"/>'
+       +'<polygon points="60,50 56,56 64,56" fill="#4a9eff" opacity=".6"/>'
+       +'<text x="60" y="66" text-anchor="middle" fill="#555" font-size="4.5" font-family="monospace">CONTRE-PLONGÉE</text></svg>'
+  }
+];
+
+function openPlans() {
+  var grid = document.getElementById('plans-grid');
+  if (!grid.children.length) {
+    PLANS_DATA.forEach(function(p) {
+      var div = document.createElement('div');
+      div.className = 'plan-card';
+      div.innerHTML = p.svg + '<div class="plan-card-name">' + p.name + '</div><div class="plan-card-desc">' + p.desc + '</div>';
+      grid.appendChild(div);
+    });
+  }
+  document.getElementById('plans-modal').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePlans() {
+  document.getElementById('plans-modal').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+// ── GÉNÉRATION STATIQUE DU SCÉNARIO ──────────────────────────────────────────
+function cap1(s) {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function shortify(s, n) {
+  if (!s) return '';
+  var words = s.trim().split(/\s+/).slice(0, n || 5);
+  return cap1(words.join(' '));
+}
+
+// Construit chaque section à partir des réponses de l'élève
+function buildSection(lbl, t, a) {
+  var r0 = a[0] || 'mon projet';
+  var r1 = a[1] || 'un lieu singulier';
+  var r2 = a[2] || 'le personnage principal';
+  var r3 = a[3] || 'son objectif';
+  var r4 = a[4] || 'un événement clé';
+  var r5 = a[5] || 'une conclusion';
+  var r6 = a[6] || 'une ambiance particulière';
+
+  if (t === 'fiction') {
+    if (lbl === 'TITRE SUGGÉRÉ') return shortify(r0, 5);
+    if (lbl === 'SYNOPSIS') return cap1(r2) + ' vit à ' + r1 + '.\n'
+      + 'Son désir : ' + r3 + '.\n'
+      + 'Tout bascule quand ' + r4 + '.\n'
+      + 'Conclusion : ' + r5 + '.';
+    if (lbl === 'PERSONNAGES') return '→ ' + cap1(r2) + ' — cherche à ' + r3 + '\n'
+      + '→ Un·e allié·e qui apparaît au bon moment\n'
+      + '→ Un·e adversaire ou obstacle humain';
+    if (lbl === 'STRUCTURE') return 'DÉBUT — ' + cap1(r2) + ' dans ' + r1 + '\n'
+      + 'MILIEU — ' + cap1(r4) + '\n'
+      + 'FIN — ' + cap1(r5);
+    if (lbl === 'AMBIANCE & STYLE') return 'Ton général : ' + r6 + '.\n'
+      + 'Lumière naturelle privilégiée. Gros plans expressifs.\n'
+      + 'Musique discrète ou silences pour renforcer les émotions.';
+    if (lbl === 'CONSEIL DE TOURNAGE') return 'Répétez chaque scène avant de filmer.\n'
+      + 'Commencez par les plans en extérieur le matin (meilleure lumière).\n'
+      + 'Un·e script peut noter chaque prise pour faciliter le montage.';
+  }
+
+  if (t === 'docu') {
+    if (lbl === 'TITRE SUGGÉRÉ') return 'Portrait : ' + shortify(r0, 4);
+    if (lbl === 'SYNOPSIS') return 'Ce documentaire plonge au cœur de ' + r0 + '.\n'
+      + 'À travers ' + r2 + ', le film tente de répondre : ' + r4 + '\n'
+      + 'Message : ' + r5 + '.';
+    if (lbl === 'SUJETS') return '→ Séquence d\'observation : ' + r3 + '\n'
+      + '→ Interview principale : ' + r2 + '\n'
+      + '→ Conclusion : ' + r5;
+    if (lbl === 'CONCEPT') return 'Sujet : ' + r0 + '\n'
+      + 'Angle : ' + r1 + '\n'
+      + 'Format : documentaire court (~3 min), style observationnel';
+    if (lbl === 'AMBIANCE & STYLE') return 'Style : ' + r6 + '.\n'
+      + 'Caméra à l\'épaule pour les séquences de vie, fixe pour les interviews.\n'
+      + 'Son direct privilégié.';
+    if (lbl === 'CONSEIL DE TOURNAGE') return 'Préparez vos questions d\'interview à l\'avance.\n'
+      + 'Filmez des plans de coupe variés pour faciliter le montage.\n'
+      + 'Rencontrez vos intervenants avant le tournage pour les mettre à l\'aise.';
+  }
+
+  if (t === 'clip') {
+    if (lbl === 'TITRE SUGGÉRÉ') return shortify(r0, 4);
+    if (lbl === 'SYNOPSIS') return 'Un voyage visuel autour de ' + r0 + '.\n'
+      + cap1(r3) + ' évolue au rythme de ' + r1 + '.\n'
+      + 'De ' + shortify(r6, 5) + ' vers une conclusion mémorable.';
+    if (lbl === 'CONCEPT') return 'Idée centrale : ' + r0 + '\n'
+      + 'Son / musique : ' + r1 + '\n'
+      + 'Rythme : ' + r4;
+    if (lbl === 'STRUCTURE') return 'OUVERTURE — ' + shortify(r6, 6) + '\n'
+      + 'DÉVELOPPEMENT — Variations autour de ' + r0 + '\n'
+      + 'CLÔTURE — Image finale mémorable';
+    if (lbl === 'AMBIANCE & STYLE') return 'Palette : ' + r2 + '.\n'
+      + 'Rythme : ' + r4 + '.\n'
+      + cap1(r5) + '.';
+    if (lbl === 'CONSEIL DE TOURNAGE') return 'Filmez beaucoup plus que nécessaire — le montage fera la sélection.\n'
+      + 'Explorez des angles inhabituels : au sol, en hauteur, en mouvement.\n'
+      + 'Synchronisez le montage sur un temps fort de la musique.';
+  }
+  return '';
+}
+
+// Variantes alternatives pour la régénération (↺ Autre version)
+function buildSectionAlt(lbl, t, a) {
+  var r0 = a[0] || 'mon projet';
+  var r1 = a[1] || 'un lieu singulier';
+  var r2 = a[2] || 'le personnage principal';
+  var r3 = a[3] || 'son objectif';
+  var r4 = a[4] || 'un événement clé';
+  var r5 = a[5] || 'une conclusion';
+  var r6 = a[6] || 'une ambiance particulière';
+
+  if (t === 'fiction') {
+    if (lbl === 'TITRE SUGGÉRÉ') return 'L\'Affaire ' + shortify(r1, 2);
+    if (lbl === 'SYNOPSIS') return 'L\'histoire commence avec ' + cap1(r2) + ' confronté·e à ' + r3 + '.\n'
+      + cap1(r4) + ' va tout changer.\n'
+      + 'Résolution : ' + r5 + '.';
+    if (lbl === 'PERSONNAGES') return '→ ' + cap1(r2) + ' : déterminé·e malgré ses doutes\n'
+      + '→ Un·e confident·e qui cache un secret\n'
+      + '→ Une figure ambiguë, ni vraiment ami ni vraiment ennemi';
+    if (lbl === 'STRUCTURE') return 'ACTE 1 — Le monde de ' + cap1(r2) + ' avant le bouleversement\n'
+      + 'ACTE 2 — Tout bascule avec ' + r4 + '\n'
+      + 'ACTE 3 — Résolution et transformation du personnage';
+    if (lbl === 'AMBIANCE & STYLE') return 'Ambiance : ' + r6 + '.\n'
+      + 'Jeu sur les contrastes lumière/ombre.\n'
+      + 'Bande-son minimaliste pour amplifier les silences forts.';
+    if (lbl === 'CONSEIL DE TOURNAGE') return 'Faites un repérage complet des lieux avant le jour J.\n'
+      + 'Prévoyez un storyboard même simplifié — ça évite les oublis.\n'
+      + 'Tournez chaque scène au moins deux fois pour avoir le choix au montage.';
+  }
+
+  if (t === 'docu') {
+    if (lbl === 'TITRE SUGGÉRÉ') return 'Dans les coulisses de ' + shortify(r0, 3);
+    if (lbl === 'SYNOPSIS') return 'Immersion dans le quotidien de ' + r2 + '.\n'
+      + 'Le film pose la question : ' + r4 + '\n'
+      + 'En partant de ' + r0 + ', on découvre ' + r5 + '.';
+    if (lbl === 'SUJETS') return '→ Ouverture sur l\'ambiance du lieu\n'
+      + '→ Interview de fond avec ' + r2 + '\n'
+      + '→ Séquence d\'action ou de travail\n'
+      + '→ Mot de conclusion';
+    if (lbl === 'CONCEPT') return 'Angle : partir de ' + r1 + ' pour montrer ' + r0 + ' sous un jour nouveau';
+    if (lbl === 'AMBIANCE & STYLE') return 'Style sobre et authentique.\n'
+      + 'Images de la vie réelle, sans mise en scène artificielle.\n'
+      + 'Laisser les silences exister — ne pas tout commenter.';
+    if (lbl === 'CONSEIL DE TOURNAGE') return 'Arrivez tôt pour vous installer discrètement.\n'
+      + 'Filmez avant l\'interview pour avoir des images naturelles.\n'
+      + 'Osez les plans longs — le montage raccourcira.';
+  }
+
+  if (t === 'clip') {
+    if (lbl === 'TITRE SUGGÉRÉ') return '[ ' + shortify(r0, 2).toUpperCase() + ' ]';
+    if (lbl === 'SYNOPSIS') return 'Une exploration sensorielle de ' + r0 + '.\n'
+      + 'Pas de narration — juste ' + r1 + ' et ' + r2 + '.\n'
+      + 'Du silence à l\'image finale.';
+    if (lbl === 'CONCEPT') return 'Parti pris : ' + r5 + '\n'
+      + 'Texture visuelle : ' + r2;
+    if (lbl === 'STRUCTURE') return 'INTRO — Installation lente, ' + r1 + '\n'
+      + 'CORPS — Variations et montée en intensité\n'
+      + 'SORTIE — ' + shortify(r6, 5);
+    if (lbl === 'AMBIANCE & STYLE') return '100 % expérimental : aucune règle préétablie.\n'
+      + 'Osez les accidents volontaires : surexpositions, flous, tremblés.\n'
+      + cap1(r2) + '.';
+    if (lbl === 'CONSEIL DE TOURNAGE') return 'Filmez en explorant sans plan fixe d\'abord.\n'
+      + 'Gardez vos accidents de tournage — ils font souvent les meilleures images.\n'
+      + 'Montez en suivant votre instinct musical, pas la chronologie.';
+  }
+  return '';
+}
+
+function getSectionLabels(t) {
+  if (t === 'docu')  return ['TITRE SUGGÉRÉ','SYNOPSIS','SUJETS','CONCEPT','AMBIANCE & STYLE','CONSEIL DE TOURNAGE'];
+  if (t === 'clip')  return ['TITRE SUGGÉRÉ','SYNOPSIS','CONCEPT','STRUCTURE','AMBIANCE & STYLE','CONSEIL DE TOURNAGE'];
+  return ['TITRE SUGGÉRÉ','SYNOPSIS','PERSONNAGES','STRUCTURE','AMBIANCE & STYLE','CONSEIL DE TOURNAGE'];
+}
+
+function buildScenario(t, a) {
+  return getSectionLabels(t).map(function(lbl) {
+    return { lbl: lbl, txt: buildSection(lbl, t, a) };
+  }).filter(function(s) { return s.txt; });
+}
+
+function genScen() {
+  showApp(); show('s-q'); window.scrollTo(0, 0);
+  document.getElementById('btn-next').textContent = '⏳ Génération…';
+  document.getElementById('btn-next').disabled = true;
+  setTimeout(function() {
+    scenSections = buildScenario(type, ans);
+    saveSession();
+    populateCongrats();
+    showApp(); show('s-congrats'); window.scrollTo(0, 0);
+    document.getElementById('btn-next').textContent = 'GÉNÉRER LE DOSSIER ✦';
+    document.getElementById('btn-next').disabled = false;
+  }, 700);
+}
+
+function populateCongrats() {
+  var j = J[type];
+  var isFiction = (type === 'fiction');
+  document.getElementById('cg-type').textContent = j.label.toUpperCase();
+  var titleSec = scenSections.find(function(s){ return s.lbl === 'TITRE SUGGÉRÉ'; });
+  var synSec   = scenSections.find(function(s){ return s.lbl === 'SYNOPSIS'; });
+  document.getElementById('cg-title').textContent = titleSec ? titleSec.txt : '—';
+  document.getElementById('cg-synopsis').textContent = synSec ? synSec.txt.substring(0,180)+(synSec.txt.length>180?'…':'') : '—';
+  document.getElementById('cg-q').textContent = j.qs.length;
+  document.getElementById('cg-sec').textContent = scenSections.length;
+  document.getElementById('cg-pages').textContent = isFiction ? '4' : '3';
+  document.getElementById('scen-tag').textContent = j.label.toUpperCase();
+  renderScenSections();
+  document.getElementById('cg-scen-wrap').classList.remove('on');
+  document.getElementById('cg-toggle-arr').textContent = '▼';
+  document.getElementById('cg-toggle-lbl').textContent = 'Lire le scénario complet';
+}
+
+function renderScenSections() {
+  var body = document.getElementById('scen-body');
+  body.innerHTML = '';
+  scenSections.forEach(function(s, idx) {
+    var div = document.createElement('div');
+    div.className = 'sec';
+    div.dataset.idx = idx;
+    div.innerHTML =
+      '<div class="sec-hdr">'
+      + '<div class="sec-lbl">'+s.lbl+'</div>'
+      + '<button class="btn-regen" onclick="regenSection('+idx+',this)" title="Régénérer cette section">↺ Autre version</button>'
+      + '</div>'
+      + '<div class="sec-txt" id="sec-txt-'+idx+'">'+s.txt+'</div>';
+    body.appendChild(div);
+  });
+}
+
+function regenSection(idx, btn) {
+  var sec = scenSections[idx];
+  btn.disabled = true;
+  btn.textContent = '⏳…';
+  var txtEl = document.getElementById('sec-txt-'+idx);
+  txtEl.classList.add('loading');
+  setTimeout(function() {
+    // Alterne entre version principale et version alternative
+    var mainTxt = buildSection(sec.lbl, type, ans);
+    var altTxt  = buildSectionAlt(sec.lbl, type, ans);
+    var newTxt  = (sec.txt === mainTxt) ? altTxt : mainTxt;
+    if (!newTxt) newTxt = mainTxt;
+    scenSections[idx] = { lbl: sec.lbl, txt: newTxt };
+    saveSession();
+    if (sec.lbl === 'TITRE SUGGÉRÉ') document.getElementById('cg-title').textContent = newTxt;
+    if (sec.lbl === 'SYNOPSIS') document.getElementById('cg-synopsis').textContent = newTxt.substring(0,180)+(newTxt.length>180?'…':'');
+    txtEl.textContent = newTxt;
+    txtEl.classList.remove('loading');
+    btn.disabled = false;
+    btn.textContent = '↺ Autre version';
+  }, 400);
+}
+
+function toggleScenView() {
+  var wrap = document.getElementById('cg-scen-wrap');
+  wrap.classList.toggle('on');
+  var open = wrap.classList.contains('on');
+  document.getElementById('cg-toggle-arr').textContent = open ? '▲' : '▼';
+  document.getElementById('cg-toggle-lbl').textContent = open ? 'Masquer le scénario' : 'Lire le scénario complet';
+}
+
+function parseSecs(text) {
+  var titles=['TITRE SUGGÉRÉ','SYNOPSIS','PERSONNAGES','SUJETS','CONCEPT','STRUCTURE','AMBIANCE & STYLE','CONSEIL DE TOURNAGE'];
+  var lines=text.split('\n'), secs=[], cur=null;
+  lines.forEach(function(line){
+    var t=line.trim();
+    var m=null;
+    titles.forEach(function(ti){ if(!m && t.toUpperCase().indexOf(ti)===0) m=ti; });
+    if(m){ if(cur)secs.push(cur); var rest=t.substring(m.length).replace(/^[\s:*]+/,''); cur={lbl:m,txt:rest?rest+'\n':''}; }
+    else if(cur){ cur.txt+=t?t+'\n':'\n'; }
+  });
+  if(cur)secs.push(cur);
+  return secs.map(function(s){return{lbl:s.lbl,txt:s.txt.trim()};}).filter(function(s){return s.txt;});
+}
+
+// PRINT DOC
+function openPrint() {
+  var j = J[type];
+
+  document.getElementById('cv-badge').textContent = j.label.toUpperCase();
+  document.getElementById('ph-tag').textContent = j.label.toUpperCase();
+
+  if(ans[0] && !document.getElementById('cv-title').value)
+    document.getElementById('cv-title').placeholder = ans[0].substring(0,50).toUpperCase();
+
+  // Inject team names
+  TEAM_MAP.forEach(function(m) {
+    var src = document.getElementById(m.src);
+    var dst = document.getElementById(m.dst);
+    if(src && dst && src.value.trim()) dst.value = src.value.trim();
+  });
+
+  // Inject scenario
+  var ps = document.getElementById('print-scen');
+  if(scenSections.length) {
+    ps.innerHTML = '';
+    scenSections.forEach(function(s) {
+      var clean = s.txt.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/#{1,3}\s*/g,'').trim();
+      var div = document.createElement('div'); div.className = 'sc-sec';
+      div.innerHTML = '<div class="sc-ttl">▸ '+s.lbl+'</div>'
+        +'<div class="sc-body'+(s.lbl==='SYNOPSIS'?' lg':'')+'">'+clean.replace(/\n/g,'<br>')+'</div>';
+      ps.appendChild(div);
+    });
+  } else {
+    ps.innerHTML = '<div style="font-family:monospace;font-size:11px;color:#aaa;font-style:italic;">Aucun scénario généré.</div>';
+  }
+
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('print-wrap').classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+function closePrint() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('print-wrap').classList.remove('on');
+  show('s-congrats');
+}
+</script>
+</body>
+</html>
